@@ -66,6 +66,5 @@ group :test do
 end
 
 gem "httparty", "~> 0.22.0"
-gem 'sidekiq-cron'
 gem 'sidekiq'
-gem 'sinatra', require: false # Required for web UI
+gem 'sinatra', require: false
