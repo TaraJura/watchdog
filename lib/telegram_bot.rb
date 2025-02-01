@@ -3,7 +3,7 @@ require 'json'
 
 class TelegramBot
   TOKEN = '7851699339:AAEU8fX6WAY6_2kO7eBZVWE8aVNwFBx0pcA'.freeze
-  CHAT_ID = '1619339886'.freeze
+  CHAT_ID = '@bazosbot1'.freeze
 
   def self.send_message(text, parse_mode: nil)
     uri = URI("https://api.telegram.org/bot#{TOKEN}/sendMessage")
