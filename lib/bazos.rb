@@ -62,7 +62,7 @@ class Bazos
 
       unless Car.exists?(link: full_link)
         Car.create(title: title, link: full_link)
-        ::SendTelegramMessageJob.perform_later(title, full_link)
+        ::SendTelegramMessageJob.perform_later(full_link)
       end
     end
   end
