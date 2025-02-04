@@ -1,69 +1,84 @@
 require 'net/http'
 require 'uri'
-require 'nokogiri'
-require 'digest'
+require 'json'
 
 class Bazos
-  def self.fetch_content
+  API_URL = 'https://www.bazos.cz/api/v1/ads.php'.freeze
+  MAX_LIMIT = 200
+  MAX_OFFSET = 2000
+
+  def self.fetch_ads
     offset = 0
 
-    loop do
-      # Build URL with current offset
+    while offset <= MAX_OFFSET
       url = build_url(offset)
+      response = make_request(url)
 
-      # Fetch page content
-      response = fetch_page(url)
       break unless response.is_a?(Net::HTTPSuccess)
 
-      # Parse and save cars, break if 1300 page reached
-      parse_and_save_cars(response.body)
-      offset = 0 if offset > 1300
+      ads = parse_response(response.body)
+      break if ads.empty?
 
-      puts offset
-
-      offset += 20
+      save_ads(ads)
+      offset = 0 if offset == MAX_OFFSET
+      offset += MAX_LIMIT
     end
   end
 
   private
 
   def self.build_url(offset)
-    base_params = {
-      hledat: 'auto',
-      hlokalita: '',
-      humkreis: 25,
-      cenaod: 50000,
-      cenado: 100000,
-      order: ''
+    params = {
+      section: 'auto',
+      limit: MAX_LIMIT,
+      offset: offset,
+      price_from: 5000,
+      price_to: 50000
     }
 
-    path = offset.positive? ? "/#{offset}/" : "/"
-    URI::HTTPS.build(
-      host: 'auto.bazos.cz',
-      path: path,
-      query: URI.encode_www_form(base_params)
-    )
+    URI.parse(API_URL + "?#{URI.encode_www_form(params)}")
   end
 
-  def self.fetch_page(url)
-    http = Net::HTTP.new(url.host, url.port)
-    http.use_ssl = true
-    http.request(Net::HTTP::Get.new(url.request_uri))
+  def self.make_request(url)
+    Net::HTTP.start(url.host, url.port, use_ssl: true) do |http|
+      http.request(Net::HTTP::Get.new(url.request_uri))
+    end
   end
 
-  def self.parse_and_save_cars(html)
-    doc = Nokogiri::HTML(html)
-    listings = doc.css('.inzeraty.inzeratyflex')
+  def self.parse_response(body)
+    JSON.parse(body) rescue []
+  end
 
-    listings.each do |listing|
-      title = listing.css('h2.nadpis a').text.strip
-      link = listing.css('h2.nadpis a').attr('href').value
-      full_link = URI.join("https://auto.bazos.cz", link).to_s
+  def self.save_ads(ads)
+    current_urls = ads.map { |ad| ad['url'] }
+    existing_urls = Car.where(url: current_urls).pluck(:url).to_set
 
-      unless Car.exists?(link: full_link)
-        Car.create(title: title, link: full_link)
-        ::SendTelegramMessageJob.perform_later(full_link)
-      end
+    new_ads = ads.reject { |ad| existing_urls.include?(ad['url']) }
+    return if new_ads.empty?
+
+    cars_attributes = new_ads.map do |ad|
+      {
+        api_id: ad['id'],
+        title: ad['title'],
+        listed_at: Time.parse(ad['from']),
+        price_formatted: ad['price_formatted'],
+        currency: ad['currency'],
+        image_thumbnail: ad['image_thumbnail'],
+        locality: ad['locality'],
+        topped: ad['topped'] == 'true',
+        image_width: ad['image_thumbnail_width'].to_i,
+        image_height: ad['image_thumbnail_height'].to_i,
+        favourite: ad['favourite'] == 'true',
+        url: ad['url']
+      }
+    end
+
+    # Bulk insert new records
+    Car.insert_all(cars_attributes)
+
+    # Enqueue jobs for new ads
+    new_ads.each do |ad|
+      SendTelegramMessageJob.perform_later(ad['url'])
     end
   end
 end

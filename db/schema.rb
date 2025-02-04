@@ -13,9 +13,21 @@
 ActiveRecord::Schema[7.1].define(version: 2025_01_29_191729) do
   create_table "cars", force: :cascade do |t|
     t.string "title"
-    t.string "link"
+    t.string "url"
+    t.string "api_id"
+    t.datetime "listed_at"
+    t.string "price_formatted"
+    t.string "currency"
+    t.string "image_thumbnail"
+    t.string "locality"
+    t.boolean "topped"
+    t.integer "image_width"
+    t.integer "image_height"
+    t.boolean "favourite"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["api_id"], name: "index_cars_on_api_id", unique: true
+    t.index ["url"], name: "index_cars_on_url", unique: true
   end
 
 end
