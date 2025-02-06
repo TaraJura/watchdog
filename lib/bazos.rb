@@ -77,8 +77,9 @@ class Bazos
     Car.insert_all(cars_attributes)
 
     # Enqueue jobs for new ads
-    # new_ads.each do |ad|
-    #   SendTelegramMessageJob.perform_later(ad['url'])
-    # end
+    new_ads.each do |ad|
+      puts "Enqueueing job for #{ad['url']}"
+      SendTelegramMessageJob.perform_later(ad['url'])
+    end
   end
 end
