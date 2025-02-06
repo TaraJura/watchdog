@@ -32,8 +32,8 @@ class Bazos
       section: 'auto',
       limit: MAX_LIMIT,
       offset: offset,
-      price_from: 5000,
-      price_to: 50000
+      price_from: 50000,
+      price_to: 100000
     }
 
     URI.parse(API_URL + "?#{URI.encode_www_form(params)}")
