@@ -2,6 +2,7 @@
 namespace :bazos do
   desc "Fetch Bazos content"
   task fetch: :environment do
-    Bazos.fetch_content
+    Bazos.fetch_ads
   end
 end
+# rake bazos:fetch
