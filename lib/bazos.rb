@@ -7,37 +7,34 @@ class Bazos
   MAX_LIMIT = 200
   MAX_OFFSET = 2000
 
-  def self.fetch_ads
+  def self.fetch_ads(price_from: 50000, price_to: 100000, element_chat_id: '1619339886'.freeze)
+    puts 'Fetching ads...'
     offset = 0
 
     while offset <= MAX_OFFSET
-      url = build_url(offset)
+      params = {
+        section: 'auto',
+        limit: MAX_LIMIT,
+        offset:,
+        price_from:,
+        price_to:
+      }
+
+      url = URI.parse(API_URL + "?#{URI.encode_www_form(params)}")
+
       response = make_request(url)
 
       break unless response.is_a?(Net::HTTPSuccess)
 
       ads = parse_response(response.body)
-      break if ads.empty?
 
-      save_ads(ads)
+      save_ads(ads, element_chat_id)
       offset = 0 if offset == MAX_OFFSET
       offset += MAX_LIMIT
     end
   end
 
   private
-
-  def self.build_url(offset)
-    params = {
-      section: 'auto',
-      limit: MAX_LIMIT,
-      offset: offset,
-      price_from: 50000,
-      price_to: 100000
-    }
-
-    URI.parse(API_URL + "?#{URI.encode_www_form(params)}")
-  end
 
   def self.make_request(url)
     Net::HTTP.start(url.host, url.port, use_ssl: true) do |http|
@@ -49,7 +46,7 @@ class Bazos
     JSON.parse(body) rescue []
   end
 
-  def self.save_ads(ads)
+  def self.save_ads(ads, element_chat_id)
     current_urls = ads.map { |ad| ad['url'] }
     existing_urls = Car.where(url: current_urls).pluck(:url).to_set
 
@@ -78,8 +75,8 @@ class Bazos
 
     # Enqueue jobs for new ads
     new_ads.each do |ad|
-      puts "Enqueueing job for #{ad['url']}"
-      SendTelegramMessageJob.perform_later(ad['url'])
+      text = "[#{ad['title']}](#{ad['url']})"
+      SendTelegramMessageJob.perform_later(text, element_chat_id)
     end
   end
 end

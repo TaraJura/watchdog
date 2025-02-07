@@ -1,7 +1,7 @@
 class SendTelegramMessageJob < ApplicationJob
   queue_as :default
 
-  def perform(full_link)
-    TelegramBot.send_message(full_link)
+  def perform(text, element_chat_id)
+    TelegramBot.send_message(text, element_chat_id)
   end
 end
