@@ -6,7 +6,7 @@ namespace :bazos do
     puts "Job started at #{Time.now}"
 
     threads = [
-      Thread.new { Bazos.fetch_ads(price_from: 5000, price_to: 50000, element_chat_id: '@bazosbot1') },
+      Thread.new { Bazos.fetch_ads(price_from: 5000, price_to: 50000, element_chat_id: '@bazosfirstfetch') },
       Thread.new { Bazos.fetch_ads(price_from: 50000, price_to: 100000, element_chat_id: '@bazossecondfetch') },
       Thread.new { Bazos.fetch_ads(price_from: 100000, price_to: 300000, element_chat_id: '@bazosthirdfetch') },
       Thread.new { Sauto.start }
@@ -16,10 +16,3 @@ namespace :bazos do
     puts "Job finished at #{Time.now}"
   end
 end
-
-
-# CHAT_ID = '1619339886'.freeze
-# CHAT_ID = '@bazosfirstfetch'.freeze
-# CHAT_ID = '@bazossecondfetch'.freeze
-# CHAT_ID = '@bazosthirdfetch'.freeze
-# CHAT_ID = '@sautobot1'.freeze
