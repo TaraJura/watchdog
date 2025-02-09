@@ -31,7 +31,7 @@ class Bazos
       save_ads(ads, element_chat_id)
       offset = 0 if offset == MAX_OFFSET
       offset += MAX_LIMIT
-      sleep 5
+      sleep 1
     end
   end
 
