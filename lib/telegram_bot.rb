@@ -17,3 +17,4 @@ end
 # CHAT_ID = '@bazosbot1'.freeze
 # CHAT_ID = '@bazossecondfetch'.freeze
 # CHAT_ID = '@bazosthirdfetch'.freeze
+# CHAT_ID = '@sautobot1'.freeze
