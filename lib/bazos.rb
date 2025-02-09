@@ -31,6 +31,7 @@ class Bazos
       save_ads(ads, element_chat_id)
       offset = 0 if offset == MAX_OFFSET
       offset += MAX_LIMIT
+      sleep 5
     end
   end
 
@@ -78,5 +79,7 @@ class Bazos
       text = "[#{ad['title']}](#{ad['url']})"
       SendTelegramMessageJob.perform_later(text, element_chat_id)
     end
+  rescue StandardError => e
+    puts "Error saving ads: #{e.message}"
   end
 end
