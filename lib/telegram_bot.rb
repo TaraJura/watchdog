@@ -14,7 +14,7 @@ end
 # Car.all.map{|x| TelegramBot.send_message("New car: #{x.title} odkaz: #{x.link}")}
 # message = "[#{car.price_formatted}](#{car.url})"
 # CHAT_ID = '1619339886'.freeze
-# CHAT_ID = '@bazosbot1'.freeze
+# CHAT_ID = '@bazosfirstfetch'.freeze
 # CHAT_ID = '@bazossecondfetch'.freeze
 # CHAT_ID = '@bazosthirdfetch'.freeze
 # CHAT_ID = '@sautobot1'.freeze

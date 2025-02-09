@@ -8,7 +8,8 @@ namespace :bazos do
     threads = [
       Thread.new { Bazos.fetch_ads(price_from: 5000, price_to: 50000, element_chat_id: '@bazosbot1') },
       Thread.new { Bazos.fetch_ads(price_from: 50000, price_to: 100000, element_chat_id: '@bazossecondfetch') },
-      Thread.new { Bazos.fetch_ads(price_from: 100000, price_to: 300000, element_chat_id: '@bazosthirdfetch') }
+      Thread.new { Bazos.fetch_ads(price_from: 100000, price_to: 300000, element_chat_id: '@bazosthirdfetch') },
+      Thread.new { Sauto.start }
     ]
 
     threads.each(&:join) # Wait for all threads to finish
@@ -17,6 +18,8 @@ namespace :bazos do
 end
 
 
-# CHAT_ID = '@bazosbot1'
-# CHAT_ID = '@bazossecondfetch'
-# CHAT_ID = '@bazosthirdfetch'
+# CHAT_ID = '1619339886'.freeze
+# CHAT_ID = '@bazosfirstfetch'.freeze
+# CHAT_ID = '@bazossecondfetch'.freeze
+# CHAT_ID = '@bazosthirdfetch'.freeze
+# CHAT_ID = '@sautobot1'.freeze
