@@ -30,7 +30,7 @@ class Sauto
   end
 
   def self.fetch_ads
-    response = Net::HTTP.get_response(URI("https://www.sauto.cz/api/v1/items/search?category_id=838&limit=50&offset=0"))
+    response = Net::HTTP.get_response(URI("https://www.sauto.cz/api/v1/items/search?category_id=838&limit=50&offset=0&prodejce=soukromy"))
     return [] unless response.is_a?(Net::HTTPSuccess)
 
     JSON.parse(response.body)['results']
