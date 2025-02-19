@@ -48,6 +48,8 @@ class Bazos
   end
 
   def self.save_ads(ads, element_chat_id)
+    ads = ads.reject { |ad| ad.key?("premise") }
+
     current_urls = ads.map { |ad| ad['url'] }
     existing_urls = Car.where(url: current_urls).pluck(:url).to_set
 
