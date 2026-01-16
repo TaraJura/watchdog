@@ -13,7 +13,7 @@ class Bazos
 
     while offset <= MAX_OFFSET
       params = {
-        category: 'auto',
+        category: 'osobni',
         limit: MAX_LIMIT,
         offset:,
         price_from:,
