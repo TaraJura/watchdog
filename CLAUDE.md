@@ -10,8 +10,8 @@
 
 | Component | Version/Details |
 |-----------|-----------------|
-| Ruby | 3.4.1 |
-| Rails | 7.1.5.1 |
+| Ruby | 4.0.1 |
+| Rails | 8.0.4 |
 | Database | SQLite3 |
 | Web Server | Puma |
 | Background Jobs | Sidekiq |
