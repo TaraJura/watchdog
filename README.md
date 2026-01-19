@@ -14,8 +14,8 @@ A Rails application that monitors Czech automotive websites (Bazos.cz and Sauto.
 
 | Component | Technology |
 |-----------|------------|
-| Framework | Ruby on Rails 7.1 |
-| Ruby | 3.4.1 |
+| Framework | Ruby on Rails 8.0.4 |
+| Ruby | 4.0.1 |
 | Database | SQLite3 |
 | Background Jobs | Sidekiq |
 | Real-time | ActionCable (WebSocket) |
@@ -27,7 +27,7 @@ A Rails application that monitors Czech automotive websites (Bazos.cz and Sauto.
 
 ### Prerequisites
 
-- Ruby 3.4.1
+- Ruby 4.0.1
 - Bundler
 - Redis (for Sidekiq)
 
