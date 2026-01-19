@@ -8,7 +8,7 @@ Rails.application.config.after_initialize do
       Rails.logger.info "[StartFetchJobs] Auto-starting fetch jobs..."
 
       begin
-        FetchBazosJob.perform_later(0)
+        FetchBazosJob.perform_later
         FetchSautoJob.perform_later
         Rails.logger.info "[StartFetchJobs] Fetch jobs queued successfully"
       rescue => e

@@ -8,4 +8,6 @@ pin_all_from "app/javascript/controllers", under: "controllers"
 
 # Action Cable
 pin "@rails/actioncable", to: "actioncable.esm.js"
-pin_all_from "app/javascript/channels", under: "channels"
+pin "channels/consumer", to: "channels/consumer.js"
+pin "channels/index", to: "channels/index.js"
+pin "channels/notifications_channel", to: "channels/notifications_channel.js"

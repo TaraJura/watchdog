@@ -1,1 +1,1 @@
-import "./notifications_channel"
+import "channels/notifications_channel"
