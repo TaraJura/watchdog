@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Watchdog** is a Rails-based application that monitors Czech automotive websites (Bazos.cz and Sauto.cz) for car advertisements, stores them in a database, and sends real-time notifications via Telegram.
+**Watchdog** is a Rails application that monitors Czech automotive websites (Bazos.cz and Sauto.cz) for car advertisements, stores them in a database, and provides real-time notifications via WebSocket.
 
 **Repository:** https://github.com/TaraJura/watchdog.git
 
@@ -15,8 +15,9 @@
 | Database | SQLite3 |
 | Web Server | Puma |
 | Background Jobs | Sidekiq |
-| HTTP Client | HTTParty |
-| Notifications | Telegram Bot API |
+| Real-time | ActionCable (WebSocket) |
+| HTTP Client | HTTParty, Net::HTTP |
+| HTML Parsing | Nokogiri |
 
 ## Project Structure
 
@@ -24,26 +25,28 @@
 watchdog/
 ├── app/
 │   ├── controllers/
-│   │   └── watchdog_controller.rb    # Health check endpoint
+│   │   ├── application_controller.rb
+│   │   └── cars_controller.rb        # Main UI and API endpoints
 │   ├── jobs/
-│   │   └── send_telegram_message_job.rb  # Async Telegram notifications
+│   │   ├── application_job.rb
+│   │   ├── fetch_bazos_job.rb        # Bazos.cz HTML scraper
+│   │   └── fetch_sauto_job.rb        # Sauto.cz API fetcher
 │   ├── models/
-│   │   └── car.rb                    # Car advertisement model
-│   └── views/layouts/
+│   │   └── car.rb                    # Car model with scopes
+│   ├── channels/
+│   │   └── notifications_channel.rb  # WebSocket notifications
+│   └── views/cars/
+│       └── index.html.erb            # Dashboard UI
 ├── config/
 │   ├── routes.rb                     # Route definitions
 │   ├── sidekiq.yml                   # Sidekiq configuration
 │   ├── database.yml                  # SQLite3 config
-│   └── puma.rb                       # Puma server config
+│   ├── puma.rb                       # Puma server config
+│   └── initializers/
+│       └── start_fetch_jobs.rb       # Auto-start jobs
 ├── db/
 │   ├── migrate/                      # Database migrations
 │   └── schema.rb                     # Current schema
-├── lib/
-│   ├── bazos.rb                      # Bazos.cz API fetcher
-│   ├── sauto.rb                      # Sauto.cz fetcher (continuous loop)
-│   ├── telegram_bot.rb               # Telegram notification service
-│   └── tasks/
-│       └── bazos.rake                # Multithreaded fetch task
 ├── storage/                          # SQLite database files
 ├── Dockerfile                        # Production Docker build
 └── Gemfile                           # Ruby dependencies
@@ -56,59 +59,69 @@ watchdog/
 | Column | Type | Description |
 |--------|------|-------------|
 | id | integer | Primary key |
-| title | string | Car listing title |
-| url | string | Link to listing (unique index) |
-| api_id | string | Source API ID (unique index) |
-| listed_at | datetime | When car was listed |
-| price_formatted | string | Display price (e.g., "150,000 Kc") |
-| currency | string | Currency code |
+| title | string | Car listing title (required) |
+| url | string | Link to listing (unique, required) |
+| source | string | Source portal: 'bazos' or 'sauto' (indexed) |
+| price_formatted | string | Display price (e.g., "150 000 Kc") |
+| price_cents | integer | Price in cents for filtering (indexed) |
 | image_thumbnail | string | Thumbnail URL |
 | locality | string | Car location |
-| topped | boolean | Featured listing flag |
-| favourite | boolean | Marked as favourite |
 | created_at | datetime | Record creation time |
 | updated_at | datetime | Last update time |
 
 ## Core Components
 
-### 1. Ad Fetchers
+### 1. Fetch Jobs
 
-**Bazos Fetcher** (`lib/bazos.rb`)
-- Fetches from Bazos.cz API with price range filters
-- Paginated requests (limit 200, max offset 2000)
-- Filters out ads with "premise" field (dealers)
-- Bulk inserts new records
-- Enqueues Telegram notifications for new finds
+**FetchBazosJob** (`app/jobs/fetch_bazos_job.rb`)
+- Scrapes Bazos.cz HTML pages using Nokogiri
+- Polls every 5 seconds
+- Deduplicates by URL
+- Broadcasts new cars via ActionCable
 
-**Sauto Fetcher** (`lib/sauto.rb`)
-- Continuous loop fetcher for Sauto.cz
-- 10-second sleep between fetches
-- Checks duplicates by title
-- Sends to `@sautobot1` Telegram channel
+**FetchSautoJob** (`app/jobs/fetch_sauto_job.rb`)
+- Fetches from Sauto.cz JSON API
+- Polls every 5 seconds
+- Deduplicates by URL
+- Broadcasts new cars via ActionCable
 
-### 2. Telegram Bot (`lib/telegram_bot.rb`)
-- Sends formatted messages via Telegram Bot API
-- Uses Markdown parsing
-- **WARNING:** Token is hardcoded - should be moved to ENV
+### 2. Car Model (`app/models/car.rb`)
 
-### 3. Background Jobs
-- **SendTelegramMessageJob**: Async Telegram message delivery via Sidekiq
+Key scopes:
+- `Car.bazos` / `Car.sauto` - Filter by source
+- `Car.by_source(source)` - Dynamic source filter
+- `Car.min_price(cents)` / `Car.max_price(cents)` - Price filtering
+- `Car.search(query)` - Title search
+- `Car.today` - Today's listings
+- `Car.recent` - Ordered by newest
+- `Car.stats` - Dashboard statistics
 
-### 4. Telegram Channels
+### 3. CarsController
 
-| Channel | Price Range |
-|---------|-------------|
-| @bazosfirstfetch | 5,000 - 50,000 CZK |
-| @bazossecondfetch | 50,000 - 100,000 CZK |
-| @bazosthirdfetch | 100,000 - 300,000 CZK |
-| @sautobot1 | Sauto listings |
+| Action | Path | Description |
+|--------|------|-------------|
+| index | `/` | Dashboard with filtering |
+| start_fetching | `POST /start_fetching` | Start fetch jobs |
+| stats | `/stats` | JSON statistics |
+
+### 4. Real-time Notifications
+
+WebSocket channel broadcasts new cars as they're found:
+```javascript
+// Subscribe to notifications_channel
+// Receive: { type: 'new_car', source: 'bazos'|'sauto', car: {...} }
+```
 
 ## Routes
 
-| Path | Description |
-|------|-------------|
-| `/up` | Health check (returns `{ status: 'ok' }`) |
-| `/sidekiq` | Sidekiq Web UI |
+| Path | Method | Description |
+|------|--------|-------------|
+| `/` | GET | Dashboard |
+| `/start_fetching` | POST | Start fetch jobs |
+| `/stats` | GET | JSON statistics |
+| `/up` | GET | Health check |
+| `/sidekiq` | GET | Sidekiq Web UI |
+| `/cable` | WS | ActionCable WebSocket |
 
 ## Commands
 
@@ -144,17 +157,6 @@ RAILS_ENV=production rails console
 RAILS_ENV=production rails server
 ```
 
-### Running Fetchers
-
-```bash
-# Run multithreaded parallel fetch (Bazos + Sauto)
-rake bazos:fetch_parallel
-
-# This launches:
-# - 3 Bazos threads (different price ranges)
-# - 1 Sauto continuous thread
-```
-
 ### Docker
 
 ```bash
@@ -173,42 +175,30 @@ docker run -p 3000:3000 watchdog
 |----------|---------|-------------|
 | RAILS_ENV | development | Rails environment |
 | PORT | 3000 | Server port |
-| WEB_CONCURRENCY | 1 | Puma workers |
-| RAILS_MAX_THREADS | 5 | Thread pool size |
-| REDIS_URL | redis://localhost:6379/1 | Redis for Action Cable |
+| AUTO_START_FETCH | false | Auto-start fetch jobs in dev |
+| REDIS_URL | redis://localhost:6379/1 | Redis for ActionCable |
 | RAILS_MASTER_KEY | - | Encrypted credentials key |
 
-### Sidekiq (`config/sidekiq.yml`)
-- Concurrency: 5 workers
-- Queue: `default`
+### Auto-start Jobs
 
-### Puma (`config/puma.rb`)
-- Threads: 5 min/max
-- Port: 3000
-- Workers: 1 (preload app)
+Jobs auto-start in production. For development, set:
+```bash
+AUTO_START_FETCH=true rails server
+```
+
+Or use the "Start Fetching" button in the UI.
 
 ## Key Files Reference
 
 | File | Purpose |
 |------|---------|
-| `lib/bazos.rb` | Main Bazos.cz fetcher with price filters |
-| `lib/sauto.rb` | Continuous Sauto.cz fetcher |
-| `lib/telegram_bot.rb` | Telegram notification service |
-| `lib/tasks/bazos.rake` | Multithreaded parallel fetch task |
-| `app/models/car.rb` | Car ActiveRecord model |
-| `app/jobs/send_telegram_message_job.rb` | Async Telegram job |
-| `db/schema.rb` | Database schema definition |
-| `config/sidekiq.yml` | Background job configuration |
-
-## Security Concerns
-
-1. **Hardcoded Telegram Token** in `lib/telegram_bot.rb`
-   - Token is visible in source code
-   - Should be moved to `Rails.application.credentials` or ENV variable
-
-2. **Silent Error Handling** in `lib/sauto.rb`
-   - Errors are rescued but not logged
-   - Consider adding proper error logging
+| `app/jobs/fetch_bazos_job.rb` | Bazos.cz scraper job |
+| `app/jobs/fetch_sauto_job.rb` | Sauto.cz API fetcher job |
+| `app/models/car.rb` | Car model with scopes and validations |
+| `app/controllers/cars_controller.rb` | Main controller |
+| `app/channels/notifications_channel.rb` | WebSocket channel |
+| `config/initializers/start_fetch_jobs.rb` | Auto-start configuration |
+| `db/schema.rb` | Database schema |
 
 ## Testing
 
@@ -218,15 +208,7 @@ rails test
 
 # Run specific test file
 rails test test/models/car_test.rb
-
-# Run system tests
-rails test:system
 ```
-
-Test files location:
-- `test/models/car_test.rb`
-- `test/controllers/watchdog_controller_test.rb`
-- `test/fixtures/cars.yml`
 
 ## Troubleshooting
 
@@ -270,45 +252,20 @@ sudo journalctl -u watchdog.service -f
 sudo journalctl -u watchdog-sidekiq.service -f
 ```
 
-### Nginx
-
-- **Subdomain:** watchdog.techtools.cz
-- **Config:** `/etc/nginx/sites-enabled/watchdog.techtools.cz`
-- **SSL:** Add via Certbot after DNS A record is configured
+### Database Migration
 
 ```bash
-# After adding DNS A record for watchdog.techtools.cz:
-sudo certbot --nginx -d watchdog.techtools.cz
-```
-
-### Database
-
-```bash
-# Production console
+# Production migration
 cd /home/novakj/watchdog
-source ~/.rvm/scripts/rvm && rvm use 3.4.1
-SECRET_KEY_BASE=<key> RAILS_ENV=production bundle exec rails console
-
-# Run migrations
 SECRET_KEY_BASE=<key> RAILS_ENV=production bundle exec rails db:migrate
-
-# Direct SQLite access
-sqlite3 /home/novakj/watchdog/storage/production.sqlite3
 ```
 
-### Running the Fetcher Task
+## Architecture Notes
 
-```bash
-# Run via rake (in foreground)
-cd /home/novakj/watchdog
-source ~/.rvm/scripts/rvm && rvm use 3.4.1
-SECRET_KEY_BASE=<key> RAILS_ENV=production bundle exec rake bazos:fetch_parallel
-```
-
-## Notes
-
-- App is minimal - primarily a scheduled data fetcher
-- Business logic lives in `lib/` rather than controllers
-- Designed for single-server SQLite deployment
-- No authentication on endpoints (internal use only)
-- Telegram integration is the primary output mechanism
+- **Single Fetching System**: Jobs in `app/jobs/` handle all fetching
+- **URL-based Deduplication**: Both sources use URL for uniqueness
+- **Efficient Price Filtering**: `price_cents` column enables fast queries
+- **Source Column**: Direct filtering without URL pattern matching
+- **WebSocket Notifications**: Real-time updates via ActionCable
+- **Auto-reschedule**: Jobs reschedule themselves every 5 seconds
+- **Error Recovery**: Jobs continue running even after errors

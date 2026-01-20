@@ -1,15 +1,28 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+# Test fixtures for Car model
 
-one:
-  title: MyString
-  price: MyString
-  location: MyString
-  link: MyString
-  unique_identifier: MyString
+bazos_car:
+  title: "Skoda Octavia 2.0 TDI"
+  url: "https://auto.bazos.cz/inzerat/12345/skoda-octavia.php"
+  source: "bazos"
+  price_formatted: "150 000 Kč"
+  price_cents: 15000000
+  image_thumbnail: "https://img.bazos.cz/thumb/12345.jpg"
+  locality: "Praha"
 
-two:
-  title: MyString
-  price: MyString
-  location: MyString
-  link: MyString
-  unique_identifier: MyString
+sauto_car:
+  title: "Volkswagen Golf 1.6 TDI"
+  url: "https://www.sauto.cz/osobni/detail/volkswagen/golf/67890"
+  source: "sauto"
+  price_formatted: "200 000 Kč"
+  price_cents: 20000000
+  image_thumbnail: "https://sauto.cz/images/67890.jpg"
+  locality: "Brno"
+
+cheap_car:
+  title: "Fiat Punto 1.2"
+  url: "https://auto.bazos.cz/inzerat/11111/fiat-punto.php"
+  source: "bazos"
+  price_formatted: "50 000 Kč"
+  price_cents: 5000000
+  image_thumbnail: null
+  locality: "Ostrava"
