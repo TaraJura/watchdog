@@ -156,13 +156,106 @@ function escapeHtml(text) {
 // Request notification permission
 function requestNotificationPermission() {
   if ('Notification' in window && Notification.permission === 'default') {
-    Notification.requestPermission()
+    Notification.requestPermission().then(updateNotificationUI)
   }
+}
+
+// Update notification permission UI
+function updateNotificationUI() {
+  const icon = document.getElementById('notification-icon')
+  const text = document.getElementById('notification-text')
+  const btn = document.getElementById('notification-btn')
+  const container = document.getElementById('notification-status')
+
+  if (!icon || !text || !btn || !container) return
+
+  if (!('Notification' in window)) {
+    icon.textContent = '🔕'
+    text.textContent = 'Not supported'
+    container.className = 'notification-permission notification-disabled'
+    btn.style.display = 'none'
+    return
+  }
+
+  const permission = Notification.permission
+
+  if (permission === 'granted') {
+    icon.textContent = '🔔'
+    text.textContent = 'Notifications enabled'
+    container.className = 'notification-permission notification-enabled'
+    btn.style.display = 'none'
+  } else if (permission === 'denied') {
+    icon.textContent = '🔕'
+    text.textContent = 'Notifications blocked'
+    container.className = 'notification-permission notification-disabled'
+    btn.style.display = 'none'
+  } else {
+    icon.textContent = '🔔'
+    text.textContent = 'Notifications off'
+    container.className = 'notification-permission notification-default'
+    btn.style.display = 'inline-block'
+    btn.textContent = 'Enable'
+  }
+}
+
+// Handle notification button click
+function handleNotificationBtnClick() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission().then(updateNotificationUI)
+  }
+}
+
+// Handle fetch button click
+function handleFetchBtnClick() {
+  const btn = document.getElementById('fetch-btn')
+  const btnText = document.getElementById('fetch-btn-text')
+
+  if (!btn || !btnText) return
+
+  btn.disabled = true
+  btn.classList.add('fetching')
+  btnText.textContent = 'Starting...'
+
+  fetch('/start_fetching', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+    }
+  })
+    .then(response => response.json())
+    .then(data => {
+      btnText.textContent = 'Fetching Active'
+      btn.classList.remove('fetching')
+      // Keep button disabled since jobs are now running
+      setTimeout(() => {
+        btnText.textContent = 'Fetching...'
+      }, 2000)
+    })
+    .catch(err => {
+      console.error('Failed to start fetching:', err)
+      btnText.textContent = 'Start Fetching'
+      btn.disabled = false
+      btn.classList.remove('fetching')
+    })
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-  requestNotificationPermission()
+  // Update notification UI
+  updateNotificationUI()
+
+  // Bind notification button
+  const notificationBtn = document.getElementById('notification-btn')
+  if (notificationBtn) {
+    notificationBtn.addEventListener('click', handleNotificationBtnClick)
+  }
+
+  // Bind fetch button
+  const fetchBtn = document.getElementById('fetch-btn')
+  if (fetchBtn) {
+    fetchBtn.addEventListener('click', handleFetchBtnClick)
+  }
 })
 
 export default notificationsChannel
