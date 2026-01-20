@@ -1,2 +1,0 @@
-module WatchdogHelper
-end

@@ -63,6 +63,10 @@ group :test do
   gem "selenium-webdriver"
 end
 
+# HTTP clients and HTML parsing
 gem "httparty", "~> 0.22.0"
+gem "nokogiri"
+
+# Background job processing
 gem 'sidekiq'
 gem 'sinatra', require: false
