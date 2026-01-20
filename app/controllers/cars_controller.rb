@@ -47,7 +47,7 @@ class CarsController < ApplicationController
 
   def start_fetching
     # Start the fetch jobs if not already running
-    FetchBazosJob.perform_later(0)
+    FetchBazosJob.perform_later
     FetchSautoJob.perform_later
 
     render json: { status: 'ok', message: 'Fetching started' }

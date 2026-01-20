@@ -70,6 +70,57 @@
       transform: none;
     }
 
+    .fetch-btn.fetching {
+      background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+    }
+
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .notification-permission {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .notification-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 4px;
+      padding: 4px 10px;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .notification-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .notification-enabled {
+      color: #22c55e;
+    }
+
+    .notification-disabled {
+      color: #ef4444;
+    }
+
+    .notification-default {
+      color: #eab308;
+    }
+
     /* Notifications container */
     #notifications-container {
       position: fixed;
@@ -513,6 +564,21 @@
       .filters input[type="submit"] {
         width: 100%;
       }
+
+      .status-bar {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+      }
+
+      .status-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      #notification-text {
+        display: none;
+      }
     }
   </style>
 <% end %>
@@ -521,6 +587,24 @@
 <div id="notifications-container"></div>
 
 <div class="container">
+  <!-- Status bar with connection status, notifications, and fetch controls -->
+  <div class="status-bar">
+    <div class="status-left">
+      <span id="connection-status" class="status-dot"></span>
+      <span id="status-text">Connecting...</span>
+    </div>
+    <div class="status-right">
+      <div id="notification-status" class="notification-permission">
+        <span id="notification-icon">🔔</span>
+        <span id="notification-text">Checking...</span>
+        <button id="notification-btn" class="notification-btn" style="display: none;">Enable</button>
+      </div>
+      <button id="fetch-btn" class="fetch-btn">
+        <span id="fetch-btn-text">Start Fetching</span>
+      </button>
+    </div>
+  </div>
+
   <div class="tabs">
     <a href="<%= root_path(tab: 'bazos') %>" class="tab bazos <%= 'active' if @tab == 'bazos' %>">
       <div class="tab-stats">

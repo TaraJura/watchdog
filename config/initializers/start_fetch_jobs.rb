@@ -1,7 +1,9 @@
 # Auto-start fetch jobs when the server boots
-# Only run in production and when not in Sidekiq process
+# Runs in production by default, or when AUTO_START_FETCH=true in development
 Rails.application.config.after_initialize do
-  if Rails.env.production? && !defined?(Sidekiq::CLI)
+  should_auto_start = Rails.env.production? || ENV['AUTO_START_FETCH'] == 'true'
+
+  if should_auto_start && !defined?(Sidekiq::CLI)
     # Delay startup to ensure everything is loaded
     Thread.new do
       sleep 5
@@ -15,5 +17,7 @@ Rails.application.config.after_initialize do
         Rails.logger.error "[StartFetchJobs] Failed to start jobs: #{e.message}"
       end
     end
+  else
+    Rails.logger.info "[StartFetchJobs] Auto-start disabled. Use the 'Start Fetching' button or set AUTO_START_FETCH=true"
   end
 end
