@@ -134,6 +134,9 @@ class FetchSautoJob < ApplicationJob
           locality: car[:locality]
         }
       })
+
+      # Send push notification
+      PushNotificationService.send_new_car_notification(car)
     end
   end
 end
