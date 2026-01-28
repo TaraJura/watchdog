@@ -1,10 +1,11 @@
 # Watchdog
 
-A Rails application that monitors Czech automotive websites (Bazos.cz and Sauto.cz) for car advertisements, stores them in a database, and sends real-time notifications via Telegram and WebSocket.
+A Rails application that monitors Czech automotive websites (Bazos.cz and Sauto.cz) for car advertisements, stores them in a database, and sends real-time notifications via Push Notifications, Telegram, and WebSocket.
 
 ## Features
 
 - **Real-time Monitoring** - Continuously scrapes Bazos.cz and Sauto.cz for new car listings
+- **Push Notifications** - Browser push notifications for new car listings
 - **Telegram Notifications** - Instant alerts sent to configured Telegram channels
 - **Live Web UI** - Dark-themed dashboard with WebSocket-powered real-time updates
 - **Filtering & Search** - Filter by price range, source, and search by title
@@ -30,6 +31,7 @@ A Rails application that monitors Czech automotive websites (Bazos.cz and Sauto.
 - Ruby 4.0.1
 - Bundler
 - Redis (for Sidekiq)
+- Node.js (for push notifications)
 
 ### Installation
 
@@ -65,6 +67,54 @@ rake bazos:fetch_parallel
 
 Or trigger via the web UI by clicking "Start Fetching" on the dashboard.
 
+### Push Notifications Setup
+
+Browser push notifications require VAPID keys for authentication.
+
+#### Generate VAPID Keys
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+This will output:
+```
+Public Key: BKI...
+Private Key: I7u...
+```
+
+#### Configure Environment Variables
+
+Create a `.env` file in the project root:
+
+```bash
+VAPID_PUBLIC_KEY=your_public_key_here
+VAPID_PRIVATE_KEY=your_private_key_here
+```
+
+**Important**: The `.env` file is gitignored and should never be committed to version control.
+
+#### HTTPS Requirement
+
+Push notifications only work over HTTPS (or localhost). For production deployment, ensure your application is served over HTTPS.
+
+For local testing on mobile devices, use a tunnel service:
+
+```bash
+# Using ngrok
+ngrok http 3000
+
+# Using localtunnel
+npx localtunnel --port 3000
+```
+
+#### How It Works
+
+- Users are automatically subscribed to push notifications when they visit the dashboard
+- New car listings trigger instant browser notifications
+- Notifications include car title, price, thumbnail, and clickable link to the listing
+- Works even when the browser tab is closed (requires Service Worker support)
+
 ## Configuration
 
 ### Environment Variables
@@ -76,6 +126,8 @@ Or trigger via the web UI by clicking "Start Fetching" on the dashboard.
 | `WEB_CONCURRENCY` | 1 | Puma workers |
 | `RAILS_MAX_THREADS` | 5 | Thread pool size |
 | `SECRET_KEY_BASE` | - | Required in production |
+| `VAPID_PUBLIC_KEY` | - | Public key for push notifications |
+| `VAPID_PRIVATE_KEY` | - | Private key for push notifications |
 
 ### Telegram Channels
 
@@ -183,6 +235,22 @@ sudo journalctl -u watchdog.service -f
 RAILS_ENV=production rails db:migrate
 RAILS_ENV=production rails server
 ```
+
+### Push Notifications in Production
+
+Ensure VAPID keys are set in your production environment:
+
+```bash
+# Set environment variables on your server
+export VAPID_PUBLIC_KEY=your_public_key
+export VAPID_PRIVATE_KEY=your_private_key
+
+# Or add to systemd service file
+Environment="VAPID_PUBLIC_KEY=your_public_key"
+Environment="VAPID_PRIVATE_KEY=your_private_key"
+```
+
+The application must be served over HTTPS for push notifications to work in production.
 
 ## Testing
 

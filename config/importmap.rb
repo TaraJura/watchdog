@@ -11,3 +11,6 @@ pin "@rails/actioncable", to: "actioncable.esm.js"
 pin "channels/consumer", to: "channels/consumer.js"
 pin "channels/index", to: "channels/index.js"
 pin "channels/notifications_channel", to: "channels/notifications_channel.js"
+
+# Push Notifications
+pin "push_notifications"

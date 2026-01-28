@@ -11,6 +11,10 @@ Rails.application.routes.draw do
   post "start_fetching" => "cars#start_fetching"
   get "stats" => "cars#stats"
 
+  # Push notifications
+  post "push_subscriptions" => "push_subscriptions#create"
+  get "vapid_public_key" => "push_subscriptions#vapid_public_key"
+
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 end

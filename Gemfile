@@ -70,3 +70,6 @@ gem "nokogiri"
 # Background job processing
 gem 'sidekiq'
 gem 'sinatra', require: false
+
+# Push notifications
+gem 'dotenv-rails', groups: [:development, :test]
