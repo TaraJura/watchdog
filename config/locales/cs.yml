@@ -1,0 +1,87 @@
+cs:
+  datetime:
+    distance_in_words:
+      about_x_hours:
+        one: "hodinou"
+        other: "%{count} hodinami"
+      about_x_months:
+        one: "měsícem"
+        other: "%{count} měsíci"
+      about_x_years:
+        one: "rokem"
+        other: "%{count} lety"
+      almost_x_years:
+        one: "rokem"
+        other: "%{count} lety"
+      half_a_minute: "půl minutou"
+      less_than_x_minutes:
+        one: "minutou"
+        other: "%{count} minutami"
+      less_than_x_seconds:
+        one: "sekundou"
+        other: "%{count} sekundami"
+      over_x_years:
+        one: "rokem"
+        other: "%{count} lety"
+      x_days:
+        one: "dnem"
+        other: "%{count} dny"
+      x_minutes:
+        one: "minutou"
+        other: "%{count} minutami"
+      x_months:
+        one: "měsícem"
+        other: "%{count} měsíci"
+      x_seconds:
+        one: "sekundou"
+        other: "%{count} sekundami"
+
+  app:
+    title: "Watchdog"
+
+  navigation:
+    tabs:
+      bazos: "Bazos.cz"
+      sauto: "Sauto.cz"
+      today: "dnes"
+
+  status:
+    connecting: "Připojování..."
+    connected: "Připojeno"
+    disconnected: "Odpojeno"
+    notifications:
+      checking: "Kontrola..."
+      enabled: "Zapnuty"
+      disabled: "Vypnuty"
+      default: "Nevyřízeno"
+      enable_btn: "Povolit"
+    fetch:
+      start: "Spustit načítání"
+      fetching: "Načítání..."
+
+  filters:
+    search_placeholder: "Hledat..."
+    min_price_placeholder: "Min CZK"
+    max_price_placeholder: "Max CZK"
+    submit: "Filtrovat"
+
+  results:
+    showing: "Zobrazeno %{count} z %{total} inzerátů"
+    sorted_by: "Seřazeno podle nejnovějších"
+    no_listings: "Nebyly nalezeny žádné inzeráty"
+    no_listings_help: "Zkuste upravit filtry nebo počkejte na nové inzeráty."
+
+  car:
+    price_on_request: "Cena na dotaz"
+    time_prefix: "před"
+
+  footer:
+    sidekiq: "Sidekiq Dashboard"
+
+  notifications:
+    new_listing: "Nový inzerát"
+    view_listing: "Zobrazit inzerát"
+
+  language:
+    switch_to_english: "English"
+    switch_to_czech: "Čeština"

@@ -1,31 +1,87 @@
-# Files in the config/locales directory are used for internationalization and
-# are automatically loaded by Rails. If you want to use locales other than
-# English, add the necessary files in this directory.
-#
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t "hello"
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t("hello") %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# To learn more about the API, please read the Rails Internationalization guide
-# at https://guides.rubyonrails.org/i18n.html.
-#
-# Be aware that YAML interprets the following case-insensitive strings as
-# booleans: `true`, `false`, `on`, `off`, `yes`, `no`. Therefore, these strings
-# must be quoted to be interpreted as strings. For example:
-#
-#     en:
-#       "yes": yup
-#       enabled: "ON"
-
 en:
-  hello: "Hello world"
+  datetime:
+    distance_in_words:
+      about_x_hours:
+        one: "1 hour"
+        other: "%{count} hours"
+      about_x_months:
+        one: "1 month"
+        other: "%{count} months"
+      about_x_years:
+        one: "1 year"
+        other: "%{count} years"
+      almost_x_years:
+        one: "1 year"
+        other: "%{count} years"
+      half_a_minute: "half a minute"
+      less_than_x_minutes:
+        one: "a minute"
+        other: "%{count} minutes"
+      less_than_x_seconds:
+        one: "a second"
+        other: "%{count} seconds"
+      over_x_years:
+        one: "1 year"
+        other: "%{count} years"
+      x_days:
+        one: "1 day"
+        other: "%{count} days"
+      x_minutes:
+        one: "1 minute"
+        other: "%{count} minutes"
+      x_months:
+        one: "1 month"
+        other: "%{count} months"
+      x_seconds:
+        one: "1 second"
+        other: "%{count} seconds"
+
+  app:
+    title: "Watchdog"
+
+  navigation:
+    tabs:
+      bazos: "Bazos.cz"
+      sauto: "Sauto.cz"
+      today: "today"
+
+  status:
+    connecting: "Connecting..."
+    connected: "Connected"
+    disconnected: "Disconnected"
+    notifications:
+      checking: "Checking..."
+      enabled: "Enabled"
+      disabled: "Disabled"
+      default: "Pending"
+      enable_btn: "Enable"
+    fetch:
+      start: "Start Fetching"
+      fetching: "Fetching..."
+
+  filters:
+    search_placeholder: "Search..."
+    min_price_placeholder: "Min CZK"
+    max_price_placeholder: "Max CZK"
+    submit: "Filter"
+
+  results:
+    showing: "Showing %{count} of %{total} listings"
+    sorted_by: "Sorted by newest"
+    no_listings: "No listings found"
+    no_listings_help: "Try adjusting your filters or wait for new listings."
+
+  car:
+    price_on_request: "Price on request"
+    time_suffix: "ago"
+
+  footer:
+    sidekiq: "Sidekiq Dashboard"
+
+  notifications:
+    new_listing: "New listing"
+    view_listing: "View listing"
+
+  language:
+    switch_to_english: "English"
+    switch_to_czech: "Čeština"
