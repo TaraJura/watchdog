@@ -25,10 +25,11 @@ function updateConnectionStatus(connected) {
   const statusText = document.getElementById('status-text')
   if (statusEl) {
     statusEl.className = connected ? 'status-dot connected' : 'status-dot disconnected'
-    statusEl.title = connected ? 'Live updates active' : 'Disconnected'
   }
   if (statusText) {
-    statusText.textContent = connected ? 'Live updates active' : 'Disconnected'
+    const connectedText = statusText.dataset.connected || 'Connected'
+    const disconnectedText = statusText.dataset.disconnected || 'Disconnected'
+    statusText.textContent = connected ? connectedText : disconnectedText
   }
 }
 
@@ -106,8 +107,11 @@ function updateStats() {
 
       if (bazosCount) bazosCount.textContent = stats.bazos_total
       if (sautoCount) sautoCount.textContent = stats.sauto_total
-      if (bazosToday) bazosToday.textContent = `+${stats.bazos_today} today`
-      if (sautoToday) sautoToday.textContent = `+${stats.sauto_today} today`
+
+      // Use data attribute for "today" translation, fallback to "today"
+      const todayLabel = bazosToday?.dataset?.todayLabel || 'today'
+      if (bazosToday) bazosToday.textContent = `+${stats.bazos_today} ${todayLabel}`
+      if (sautoToday) sautoToday.textContent = `+${stats.sauto_today} ${todayLabel}`
     })
     .catch(err => console.error('Failed to update stats:', err))
 }
@@ -169,9 +173,15 @@ function updateNotificationUI() {
 
   if (!icon || !text || !btn || !container) return
 
+  // Get translations from data attributes
+  const enabledText = text.dataset.enabled || 'Enabled'
+  const disabledText = text.dataset.disabled || 'Disabled'
+  const defaultText = text.dataset.default || 'Pending'
+  const enableBtnText = btn.textContent.trim() || 'Enable'
+
   if (!('Notification' in window)) {
     icon.textContent = '🔕'
-    text.textContent = 'Not supported'
+    text.textContent = disabledText
     container.className = 'notification-permission notification-disabled'
     btn.style.display = 'none'
     return
@@ -181,20 +191,19 @@ function updateNotificationUI() {
 
   if (permission === 'granted') {
     icon.textContent = '🔔'
-    text.textContent = 'Notifications enabled'
+    text.textContent = enabledText
     container.className = 'notification-permission notification-enabled'
     btn.style.display = 'none'
   } else if (permission === 'denied') {
     icon.textContent = '🔕'
-    text.textContent = 'Notifications blocked'
+    text.textContent = disabledText
     container.className = 'notification-permission notification-disabled'
     btn.style.display = 'none'
   } else {
     icon.textContent = '🔔'
-    text.textContent = 'Notifications off'
+    text.textContent = defaultText
     container.className = 'notification-permission notification-default'
     btn.style.display = 'inline-block'
-    btn.textContent = 'Enable'
   }
 }
 
@@ -212,9 +221,13 @@ function handleFetchBtnClick() {
 
   if (!btn || !btnText) return
 
+  // Get translations from data attributes
+  const startText = btn.dataset.start || 'Start Fetching'
+  const fetchingText = btn.dataset.fetching || 'Fetching...'
+
   btn.disabled = true
   btn.classList.add('fetching')
-  btnText.textContent = 'Starting...'
+  btnText.textContent = fetchingText
 
   fetch('/start_fetching', {
     method: 'POST',
@@ -225,16 +238,13 @@ function handleFetchBtnClick() {
   })
     .then(response => response.json())
     .then(data => {
-      btnText.textContent = 'Fetching Active'
+      btnText.textContent = fetchingText
       btn.classList.remove('fetching')
       // Keep button disabled since jobs are now running
-      setTimeout(() => {
-        btnText.textContent = 'Fetching...'
-      }, 2000)
     })
     .catch(err => {
       console.error('Failed to start fetching:', err)
-      btnText.textContent = 'Start Fetching'
+      btnText.textContent = startText
       btn.disabled = false
       btn.classList.remove('fetching')
     })

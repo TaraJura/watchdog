@@ -74,6 +74,33 @@
       background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
     }
 
+    .language-toggle {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 6px 12px;
+      color: #e4e4e7;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .language-toggle:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    }
+
+    .language-toggle:active {
+      transform: translateY(0);
+    }
+
     .status-left {
       display: flex;
       align-items: center;
@@ -480,8 +507,8 @@
 
     .car-meta {
       display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
+      flex-direction: column;
+      gap: 4px;
       font-size: 0.75rem;
       color: #a1a1aa;
     }
@@ -591,17 +618,27 @@
   <div class="status-bar">
     <div class="status-left">
       <span id="connection-status" class="status-dot"></span>
-      <span id="status-text">Connecting...</span>
+      <span id="status-text"
+            data-connecting="<%= t('status.connecting') %>"
+            data-connected="<%= t('status.connected') %>"
+            data-disconnected="<%= t('status.disconnected') %>"><%= t('status.connecting') %></span>
     </div>
     <div class="status-right">
       <div id="notification-status" class="notification-permission">
         <span id="notification-icon">🔔</span>
-        <span id="notification-text">Checking...</span>
-        <button id="notification-btn" class="notification-btn" style="display: none;">Enable</button>
+        <span id="notification-text"
+              data-checking="<%= t('status.notifications.checking') %>"
+              data-enabled="<%= t('status.notifications.enabled') %>"
+              data-disabled="<%= t('status.notifications.disabled') %>"
+              data-default="<%= t('status.notifications.default') %>"><%= t('status.notifications.checking') %></span>
+        <button id="notification-btn" class="notification-btn" style="display: none;"><%= t('status.notifications.enable_btn') %></button>
       </div>
-      <button id="fetch-btn" class="fetch-btn">
-        <span id="fetch-btn-text">Start Fetching</span>
+      <button id="fetch-btn" class="fetch-btn"
+              data-start="<%= t('status.fetch.start') %>"
+              data-fetching="<%= t('status.fetch.fetching') %>">
+        <span id="fetch-btn-text"><%= t('status.fetch.start') %></span>
       </button>
+      <%= language_toggle_button %>
     </div>
   </div>
 
@@ -611,32 +648,32 @@
         <span class="count"><%= @stats[:bazos_total] %></span>
         <span class="label">Bazos.cz</span>
       </div>
-      <span class="tab-today">+<%= @stats[:bazos_today] %> today</span>
+      <span class="tab-today" data-today-label="<%= t('navigation.tabs.today') %>">+<%= @stats[:bazos_today] %> <%= t('navigation.tabs.today') %></span>
     </a>
     <a href="<%= root_path(tab: 'sauto') %>" class="tab sauto <%= 'active' if @tab == 'sauto' %>">
       <div class="tab-stats">
         <span class="count"><%= @stats[:sauto_total] %></span>
         <span class="label">Sauto.cz</span>
       </div>
-      <span class="tab-today">+<%= @stats[:sauto_today] %> today</span>
+      <span class="tab-today" data-today-label="<%= t('navigation.tabs.today') %>">+<%= @stats[:sauto_today] %> <%= t('navigation.tabs.today') %></span>
     </a>
   </div>
 
   <%= form_with url: root_path, method: :get, local: true, class: "filters" do %>
     <%= hidden_field_tag :tab, @tab %>
-    <%= text_field_tag :search, params[:search], placeholder: "Search..." %>
+    <%= text_field_tag :search, params[:search], placeholder: t('filters.search_placeholder') %>
     <div class="price-group">
-      <%= number_field_tag :min_price, params[:min_price], placeholder: "Min CZK", min: 0 %>
+      <%= number_field_tag :min_price, params[:min_price], placeholder: t('filters.min_price_placeholder'), min: 0 %>
       <span>-</span>
-      <%= number_field_tag :max_price, params[:max_price], placeholder: "Max CZK", min: 0 %>
+      <%= number_field_tag :max_price, params[:max_price], placeholder: t('filters.max_price_placeholder'), min: 0 %>
     </div>
-    <%= submit_tag "Filter", name: nil %>
+    <%= submit_tag t('filters.submit'), name: nil %>
   <% end %>
 
   <% if @cars.any? %>
     <div class="results-bar">
-      <span>Showing <%= @cars.size %> of <%= @total_count %> listings</span>
-      <span>Sorted by newest</span>
+      <span><%= t('results.showing', count: @cars.size, total: @total_count) %></span>
+      <span><%= t('results.sorted_by') %></span>
     </div>
 
     <div class="car-grid">
@@ -651,12 +688,12 @@
             <% end %>
             <div class="car-content">
               <h3 class="car-title"><%= car.title %></h3>
-              <div class="car-price"><%= car.price_formatted.presence || "Price on request" %></div>
+              <div class="car-price"><%= car.price_formatted.presence || t('car.price_on_request') %></div>
               <div class="car-meta">
                 <% if car.locality.present? %>
                   <span>📍 <%= car.locality %></span>
                 <% end %>
-                <span>🕐 <%= time_ago_in_words(car.created_at) %></span>
+                <span>🕐 <% if I18n.locale == :cs %>před <% end %><%= time_ago_in_words(car.created_at) %><% if I18n.locale == :en %> ago<% end %></span>
               </div>
             </div>
           </a>
@@ -665,12 +702,12 @@
     </div>
   <% else %>
     <div class="no-cars">
-      <h2>No listings found</h2>
-      <p>Try adjusting your filters or wait for new listings.</p>
+      <h2><%= t('results.no_listings') %></h2>
+      <p><%= t('results.no_listings_help') %></p>
     </div>
   <% end %>
 
   <footer>
-    <a href="/sidekiq">Sidekiq Dashboard</a>
+    <a href="/sidekiq"><%= t('footer.sidekiq') %></a>
   </footer>
 </div>
